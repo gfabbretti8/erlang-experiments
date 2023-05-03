@@ -11,6 +11,7 @@ init(backend) ->
   erlang:register(backend, erlang:spawn(?MODULE, backend, [])).
 
 interface() ->
+  io:format("Initiating request~n", []),
   erlang:register(interface, self()),
   spawn('app@router.com', fun () -> erlang:send(erlang:whereis(router_bug), r1) end),
   receive

@@ -1,5 +1,6 @@
 version: "3"
 services:
+
   interface:
     image: erlang:25.0.3
     command: erl -noshell -name app@interface.com -setcookie cookie -preventing_overlapping_partition false -pa ebin -eval "compile:file(\"/servDFR\")"
