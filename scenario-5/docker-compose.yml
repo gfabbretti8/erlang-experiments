@@ -1,0 +1,23 @@
+version: "3"
+services:
+  c1:
+    image: erlang:25.0.3
+    command: erl -noshell -name app@l1.com -setcookie cookie  -preventing_overlapping_partition false -pa ebin -eval "compile:file(\"/math_server\"), math_server:start()"
+    container_name: l1.com
+    volumes:
+      - "./math_server.erl:/math_server.erl:rw"
+    networks:
+      - net1
+
+  c2:
+    image: erlang:25.0.3
+    command: erl -noshell -name app@l2.com -setcookie cookie -preventing_overlapping_partition false
+    container_name: l2.com
+    networks:
+      - net1
+
+# We're using custom network setup, as it ships with a DNS
+# system which allows containers to communicate by hostnames.
+networks:
+  net1:
+    driver: bridge
