@@ -1,0 +1,39 @@
+version: "3"
+services:
+  interface:
+    image: erlang:25.0.3
+    command: erl -noshell -name app@interface.com -setcookie cookie -preventing_overlapping_partition false -pa ebin -eval "compile:file(\"/servDFV\")"
+    container_name: interface.com
+    volumes:
+      - "./servDFV.erl:/servDFV.erl:rw"
+    networks:
+      - net1
+
+  router:
+    image: erlang:25.0.3
+    command: erl -noshell -name app@router.com -setcookie cookie -preventing_overlapping_partition false -pa ebin -eval "compile:file(\"/servDFV\"), servDFV:init(router)"
+    container_name: router.com
+    volumes:
+      - "./servDFV.erl:/servDFV.erl:rw"
+    networks:
+      - net1
+      - net2
+
+  backend:
+    image: erlang:25.0.3
+    command: erl -noshell -name app@backend.com -setcookie cookie -preventing_overlapping_partition false -pa ebin -eval "compile:file(\"/servDFV\"), servDFV:init(backend)"
+    container_name: backend.com
+    volumes:
+      - "./servDFV.erl:/servDFV.erl:rw"
+    networks:
+      - net2
+
+# We're using custom network setup, as it ships with a DNS
+# system which allows containers to communicate by hostnames.
+networks:
+  net1:
+    driver: bridge
+  net2:
+    driver: bridge
+  net3:
+    driver: bridge
