@@ -103,7 +103,7 @@ observe the outcome.
 
 As expected, everything went well.
 
-Now, let us discuss the more interesting \textbf{servDFV}, where the misbehavior
+Now, let us discuss the more interesting **servDFV**, where the misbehavior
 is due to a spawn that fails because of a wrong view.
 
 The procedure to set up the system is as before, nonetheless this time two
