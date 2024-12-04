@@ -1,0 +1,22 @@
+version: "3"
+services:
+  c1:
+    image: erlang:25.0.3
+    command: erl -noshell -name app@loc_n.com -setcookie cookie -preventing_overlapping_partition false -heart -env HEART_BEAT_TIMEOUT 100
+    container_name: loc_n.com
+    networks:
+      - net1
+
+  c2:
+    image: erlang:25.0.3
+    command: erl -noshell -name app@loc_m.com -setcookie cookie -preventing_overlapping_partition false -heart -env HEART_BEAT_TIMEOUT 100 
+    container_name: loc_m.com
+    networks:
+      - net1
+
+
+# We're using custom network setup, as it ships with a DNS
+# system which allows containers to communicate by hostnames.
+networks:
+  net1:
+    driver: bridge

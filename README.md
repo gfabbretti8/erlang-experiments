@@ -4,33 +4,33 @@ This repository contains several different implementations of Erlang systems run
 
 The objective is to understand how the language behaves in ("not-so much") corner cases which are not covered by the official documentation.
 
-**Caveat** : The code here has been tested on a virtual machine running Ubuntu 16.04 and it has not been tested extensively on different environments, hence some adjusting may be required to run the experiments on different settings. 
+**Caveat** : The code here has been tested on a virtual machine running Ubuntu 16.04 and it has not been tested extensively on different environments, hence some adjusting may be required to run the experiments on different settings.
 
 To simulate a distributed environment Erlang nodes will be running on dockers'
 container connected through a network. By using docker facilities we will
-simulate failure and changes in the network structure. 
+simulate failure and changes in the network structure.
 
 ### Pinging a reincarnation of a previous known location
 
-**Description**. In this scenario $l_2$ successfully contacts $l_1$, thus
-establishing a connection. Then, $l_1$ fails and recovers. Finally, $l_2$,
-before detecting that the incarnation of $l_1$ to which it was connected has
-failed, tests again its accessibility. 
+**Description**. In this scenario location $n$ successfully contacts location $m$, thus
+establishing a connection. Then, location $m$ fails and recovers. Finally, location $n$,
+before detecting that the incarnation of location $m$ to which it was connected has
+failed, attempts to spawns again a process on it.
 
 The following commands set up the configuration and attach a remote shell to
-$l_2$.
+location $n$.
 
 ```
   gfabbret@ubuntu:~/$ docker-compose up -d
-  gfabbret@ubuntu:~/$ docker exec -it l2.com erl -name test@l2.com
-                      -setcookie cookie -remsh app@l2.com -hidden
+  gfabbret@ubuntu:~/$ gfabbret@ubuntu:~/$ docker exec -it loc_n.com erl -name test@loc_n.com
+                      -setcookie cookie -remsh app@loc_n.com -hidden
 ```
 
 Then, to establish a connection between the two locations in the Erlang console
 we can ping the remote location.
 
 ```
-  (app@l2.com)2> net_adm:ping('app@l1.com').
+  (app@loc_n.com)2> erlang:spawn(’app@loc_m.com’, erlang, self, []).
   pong
 ```
 
@@ -40,44 +40,26 @@ networks, restart it, and reconnect it to the networks it was connected to. The
 disconnection is required as otherwise the other containers would be notified of
 the restart. Detaching and re-attaching the container to the network takes few
 milliseconds, hence not enough for the Erlang system to detect it. To do so we
-get the container and network ids through the docker commands and we feed them
-to the restart script.
+leverage the script restart.
 
 ```
-gfabbret@ubuntu:~/scenario$ docker container ls
-CONTAINER ID  IMAGE          COMMAND     CREATED          STATUS         NAMES
-ba5915332d87  erlang:25.0.3  "erl ..."   49 seconds ago   Up 49 seconds  l2.com
-76c89a08761c  erlang:25.0.3  "erl ..."   49 seconds ago   Up 49 seconds  l1.com
-gfabbret@ubuntu:~/scenario-4$ docker network ls
-NETWORK ID     NAME                              DRIVER    SCOPE
-fec145052743   bridge                            bridge    local
-1b349490c51c   host                              host      local
-373b2aa1c5e9   none                              null      local
-cfc05f57eeee   scenario_net1                   bridge    local
-gfabbret@ubuntu:~/scenario$ ./restart.sh cfc05f57eeee 76c89a08761c
-ba5915332d87
-done
+gfabbret@ubuntu:~/$ ./restart.sh wrong-spawn_net1 loc_m.com
 ```
 
-Finally we attempt to ping the remote location after the restarting.
+Finally we cab attempt to spawn another process on location $m$ from location $n$ before this last one reacts to the absence of location $m$'s heartbeat.
 
 ```
   ...
-  (app@l2.com)3> spawn('app@l1.com', fun() -> self() end).
-  <0.107.0>
-  (app@l2.com)4> =WARNING REPORT==== 2-May-2023::15:16:02.174308 ===
-  ** Can not start erlang:apply,[#Fun<erl_eval.43.3316493>,[]] on 'app@l1.com' **
+  (app@loc_n.com)2> erlang:spawn(’app@loc_m.com’, erlang, self, []).
+  <0.108.0>
+  (app@loc_n.com)3> =WARNING REPORT==== 12-Sep-2024::13:22:40.233966 ===
+  ** Can not start erlang:self,[] on ’app@loc_m.com’ **
 ```
 
-The test for spawn failed even if there is a live running instance of
-$l_1$. The reason why is that $l_2$ attempted to spawn on the instance of
-$l_2$ that it knew already (in terms of our calculus, location $l_2$ at incarnation $\lambda$), which was stored in its view, and not the one
-currently alive (location $l_2$ at incarnation $\lambda+1$). If we had given $l_2$ enough time it would have detected that
-the incarnation of $l_2$ it knew was dead since it \emph{would not feel its
-  heartbeat} and in that case the spawn would have succeeded since $l_1$ would
-have initiated a new connection.
-
-
+The test for spawn failed even if there is a live running instance of location
+$m$. The reason why is that location $n$ attempted to spawn on the instance of
+location $m$ that it knew already, which was stored in its view, and not the one
+currently alive.
 
 ### Running Example in Erlang
 
