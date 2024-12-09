@@ -10,7 +10,7 @@ To simulate a distributed environment Erlang nodes will be running on dockers'
 container connected through a network. By using docker facilities we will
 simulate failure and changes in the network structure.
 
-### Pinging a reincarnation of a previous known location
+### Wrong spawn
 
 **Description**. In this scenario location $n$ successfully contacts location $m$, thus
 establishing a connection. Then, location $m$ fails and recovers. Finally, location $n$,
@@ -27,7 +27,7 @@ location $n$.
 ```
 
 Then, to establish a connection between the two locations in the Erlang console
-we can ping the remote location.
+we can spawn a process on the remote location.
 
 ```
   (app@loc_n.com)2> erlang:spawn(’app@loc_m.com’, erlang, self, []).
