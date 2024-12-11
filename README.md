@@ -26,12 +26,18 @@ location $n$.
                       -setcookie cookie -remsh app@loc_n.com -hidden
 ```
 
+Similarly, we attach a remote console to location $m$.
+
+```
+  gfabbret@ubuntu:~/$ gfabbret@ubuntu:~/$ docker exec -it loc_m.com erl -name test@loc_m.com
+                      -setcookie cookie -remsh app@loc_m.com -hidden
+```
+
 Then, to establish a connection between the two locations in the Erlang console
 we can spawn a process on the remote location.
 
 ```
-  (app@loc_n.com)2> erlang:spawn(’app@loc_m.com’, erlang, self, []).
-  pong
+  (app@loc_m.com)2> erlang:spawn(’app@loc_n.com’, erlang, self, []).
 ```
 
 To induce the fault and make it seem like a genuine interruption of services,
@@ -50,9 +56,9 @@ Finally we cab attempt to spawn another process on location $m$ from location $n
 
 ```
   ...
-  (app@loc_n.com)2> erlang:spawn(’app@loc_m.com’, erlang, self, []).
+  (app@loc_n.com)1> erlang:spawn(’app@loc_m.com’, erlang, self, []).
   <0.108.0>
-  (app@loc_n.com)3> =WARNING REPORT==== 12-Sep-2024::13:22:40.233966 ===
+  (app@loc_n.com)2> =WARNING REPORT==== 12-Sep-2024::13:22:40.233966 ===
   ** Can not start erlang:self,[] on ’app@loc_m.com’ **
 ```
 
